@@ -1,12 +1,16 @@
 import { createSlice } from '@reduxjs/toolkit';
-// import { createSelector } from "reselect";
 import { apiCallBegan } from './api';
-// import moment from "moment";
+import Task from './types/Task'
+import NewTaskInfo from './types/NewTaskInfo'
+import Filters from './types/Filters'
+import {TaskStatus} from './types/TaskStatus'
+import {Dispatch, GetState} from './types/DispatchAndGetState'
 
+let list:Task[] =[]
 const slice = createSlice({
 	name         : 'tasks',
 	initialState : {
-		list      : [],
+		list,
 		loading   : false,
 		lastFetch : null,
 	},
@@ -18,7 +22,6 @@ const slice = createSlice({
 		tasksReceived      : (tasks, action) => {
 			tasks.list = action.payload;
 			tasks.loading = false;
-			tasks.lastFetch = Date.now();
 		},
 
 		tasksRequestFailed : (tasks, action) => {
@@ -31,7 +34,7 @@ const slice = createSlice({
 
 		taskStatusChanged  : (tasks, action) => {
 			const index = tasks.list.findIndex(
-				(task) => task.id === action.payload.id,
+				(task:Task) => task.id === action.payload.id,
 			);
 			tasks.list[index] = action.payload;
 		},
@@ -58,15 +61,14 @@ export default slice.reducer;
 // Action Creators
 const url = '/tasks';
 
-export const loadTasks = (filters) => (dispatch, getState) => {
+export const loadTasks = (filters?:Filters) => (dispatch:Dispatch, getState:GetState) => {
 	const { accessToken } = getState().user.data;
-	// const diffInMinutes = moment().diff(moment(lastFetch), "minutes");
-	// if (diffInMinutes < 10) return;
 	return dispatch(
 		apiCallBegan({
 			url,
 			accessToken,
-			data        : filters,
+			params        : filters,
+			method:'get',
 			onStart     : tasksRequested.type,
 			onSuccess   : tasksReceived.type,
 			onError     : tasksRequestFailed.type,
@@ -74,9 +76,8 @@ export const loadTasks = (filters) => (dispatch, getState) => {
 	);
 };
 
-export const addTask = (task) => (dispatch, getState) => {
+export const addTask = (task:NewTaskInfo) => (dispatch:Dispatch, getState:GetState) => {
 	const { accessToken } = getState().user.data;
-	console.log('tyfuyfuyuyuy');
 	return dispatch(
 		apiCallBegan({
 			url,
@@ -88,29 +89,33 @@ export const addTask = (task) => (dispatch, getState) => {
 	);
 };
 
-export const changeTaskStatus = (id, status) =>
-	apiCallBegan({
-		url       : url + '/' + id,
-		method    : 'patch',
-		data      : { status },
-		onSuccess : taskStatusChanged.type,
-	});
+export const changeTaskStatus = (id:string, status:TaskStatus) => (
+	dispatch:Dispatch,
+	getState:GetState,
+) => {
+	const { accessToken } = getState().user.data;
+	return dispatch(
+		apiCallBegan({
+			url         : `${url}/${id}/status`,
+			method      : 'patch',
+			accessToken,
+			data        : { status },
+			onSuccess   : taskStatusChanged.type,
+		}),
+	);
+};
 
-export const deleteTask = (id) =>
-	apiCallBegan({
-		url       : url + '/' + id,
+export const deleteTask = (id:string) => (
+	dispatch:Dispatch,
+	getState:GetState,
+) => {
+	const { accessToken } = getState().user.data;
+	return dispatch(apiCallBegan({
+		url       : `${url}/${id}`,
 		method    : 'delete',
+		accessToken,
 		data      : { id },
 		onSuccess : taskDeleted.type,
-	});
-
-// // Selector
-
-// // Memoization
-// // tasks => get unresolved tasks from the cache
-
-// export const getUnresolvedtasks = createSelector(
-//   state => state.entities.tasks,
-//   state => state.entities.projects,
-//   (tasks, projects) => tasks.list.filter(bug => !bug.resolved)
-// );
+	})
+	)
+}

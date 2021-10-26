@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import {
 	Box,
 	AppBar,
@@ -21,13 +21,9 @@ const NavBar = () => {
 	const dispatch = useDispatch()
 	const classes = useStyles();
 	const logedUser: UserInfo = useSelector((state:any)=> state.user.data)
-	useEffect(()=>{
-
-	},[logedUser])
 	const logout = ()=>{
 		dispatch(logOut())
 		history.push('/login')
-		localStorage.removeItem('user')
 	}
 	return (
 		<Box sx={{ flexGrow: 1 }}>

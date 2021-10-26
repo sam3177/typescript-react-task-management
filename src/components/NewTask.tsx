@@ -1,37 +1,50 @@
-import React, { useState } from 'react';
+import React, { useState , useEffect} from 'react';
 import {
 	Box,
 	Button,
 	Typography,
 	Modal,
-	Alert,
 	TextField,
 } from '@mui/material';
-import useStyles from '../styles/Form';
+import useStyles from '../styles/NewTask';
+import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
+
 import { useDispatch } from 'react-redux';
 import { addTask } from '../store/tasks';
 
 const NewTask = () => {
 	const classes = useStyles();
 	const dispatch = useDispatch();
-	const [ open, setOpen ] = useState(false);
 	const [ title, setTitle ] = useState('');
 	const [ description, setDescription ] = useState('');
-	const [ error, setError ] = useState([]);
-	const [ isError, setIsError ] = useState(false);
+	const [ open, setOpen ] = useState(false);
 	const handleOpen = () => setOpen(true);
 	const handleClose = () => setOpen(false);
+	const [width, setWidth] = useState(window.innerWidth);
+  const breakpoint = 960;
+  useEffect(() => {
+   const handleResizeWindow = () => setWidth(window.innerWidth);
+    // subscribe to window resize event "onComponentDidMount"
+    window.addEventListener("resize", handleResizeWindow);
+    return () => {
+      // unsubscribe "onComponentDestroy"
+      window.removeEventListener("resize", handleResizeWindow);
+    };
+  }, []);
 	const submitForm = (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
 		dispatch(addTask({ title, description }));
+		handleClose()
+		setTitle('');
+		setDescription('');
 	};
 	return (
-		<div className={classes.newFormModal}>
+		<div className={classes.container}>
 			<Button
 				className={classes.newTaskBtn}
 				variant='outlined'
 				onClick={handleOpen}>
-				Add new task
+				{width < breakpoint? <AddOutlinedIcon/>:'Add new task'}
 			</Button>
 			<Modal
 				open={open}
@@ -46,12 +59,6 @@ const NewTask = () => {
 						className={classes.form}
 						noValidate={true}
 						onSubmit={submitForm}>
-						{isError ? (
-							<Alert className={classes.error} severity='error'>
-								{<p>{error}</p>}
-							</Alert>
-						) : null}
-
 						<TextField
 							label='Title'
 							variant='outlined'

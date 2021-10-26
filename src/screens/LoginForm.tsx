@@ -12,11 +12,8 @@ import { Link, useHistory } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { baseURL } from '../store/middleware/api';
 import{registerUserInfo} from '../store/logedUser'
-import configStore from '../store/configureStore'
 import useStyles from '../styles/Form'
-
-const store = configStore()
-
+import User from '../store/types/User'
 const LoginForm = () => {
 	const dispatch = useDispatch();
 	const classes = useStyles();
@@ -36,9 +33,8 @@ const LoginForm = () => {
 				data: { username, password },
 				method: 'post',
 			});
-			dispatch(registerUserInfo(result.data))
+			dispatch(registerUserInfo(result.data as User))
 			// setTimeout(() =>{
-				localStorage.setItem('user',JSON.stringify(result.data))
 				history.push('/');
 			// },4000)
 		} catch (error:any) {
